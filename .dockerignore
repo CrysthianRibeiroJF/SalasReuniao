@@ -1,0 +1,47 @@
+# Contexto de build da imagem: só o necessário para compilar o frontend e rodar o backend.
+
+# Dependências e builds locais (o Dockerfile instala/compila tudo de novo, para Linux)
+**/node_modules
+**/.venv
+frontend/dist
+frontend/node_modules/.tmp
+
+# Caches e artefatos de teste
+**/__pycache__
+**/*.py[cod]
+**/.pytest_cache
+**/.ruff_cache
+**/.mypy_cache
+**/.coverage
+**/coverage
+**/htmlcov
+frontend/test-results
+frontend/playwright-report
+frontend/blob-report
+frontend/playwright/.cache
+frontend/e2e/.auth
+frontend/e2e/screenshots
+backend/tests
+.devtools
+
+# Segredos e configuração local (nunca vão para a imagem)
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example
+!.env.docker.example
+
+# Diversos que não fazem parte da imagem
+.git
+.gitattributes
+.gitignore
+.dockerignore
+.claude
+.vscode
+.idea
+docs
+*.log
+*.xlsx
+Dockerfile
+docker-compose*.yml

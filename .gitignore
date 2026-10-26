@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+backend/.venv/
+backend/.env
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Testes do frontend (Playwright): sessões salvas, capturas e relatórios
+frontend/e2e/.auth/
+frontend/e2e/screenshots/
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+
+# Ambiente local
+.env
+*.log
+.devtools/
+
+# Backups do banco (pg_dump): têm dados pessoais e nunca vão para o controle de versão
+*.dump

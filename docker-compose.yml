@@ -1,0 +1,79 @@
+# Agenda de Salas em Tempo Real — produção com Docker Compose.
+#
+#   cp .env.docker.example .env      # preencha POSTGRES_PASSWORD, AGENDA_JWT_SECRET e o
+#                                    # administrador inicial (veja os comentários do arquivo)
+#   docker compose up -d --build
+#   docker compose ps                # "app" deve ficar "healthy"
+#
+# Serviços: db (PostgreSQL 16, dados no volume "pgdata"), redis (travas e eventos entre processos,
+# sem persistência) e app (API + WebSocket + SPA na porta 8000). Detalhes em README.md.
+
+name: agenda-salas
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: agenda
+      POSTGRES_USER: agenda
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no arquivo .env (veja .env.docker.example)}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agenda -d agenda"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    logging: *logging
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # Travas (TTL de 120 s), presença e pub/sub são efêmeros: nada a persistir em disco.
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    logging: *logging
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # Antes de atualizar, guarde a imagem em uso: docker tag agenda-salas:latest agenda-salas:anterior
+    # (o build sobrescreve "latest"; o retorno de versão usa a "anterior" — docs/OPERACAO.md 5.2).
+    image: agenda-salas:latest
+    restart: unless-stopped
+    init: true
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      AGENDA_ENV: production
+      AGENDA_DATABASE_URL: postgresql+asyncpg://agenda:${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no arquivo .env}@db:5432/agenda
+      AGENDA_REDIS_URL: redis://redis:6379/0
+      AGENDA_JWT_SECRET: ${AGENDA_JWT_SECRET:?Defina AGENDA_JWT_SECRET no arquivo .env (mínimo de 32 caracteres aleatórios)}
+    ports:
+      - "${HTTP_BIND:-0.0.0.0}:${HTTP_PORT:-8000}:8000"
+    security_opt:
+      - no-new-privileges:true
+    # Tempo para fechar os WebSockets com elegância (código 1012) antes do SIGKILL.
+    stop_grace_period: 30s
+    logging: *logging
+
+volumes:
+  pgdata:
