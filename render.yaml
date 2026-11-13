@@ -1,0 +1,39 @@
+# Blueprint do Render: sobe a Agenda de Salas (API + WebSocket + SPA) com PostgreSQL.
+# Plano gratuito, para TESTES: o serviço "dorme" após 15 min sem acesso (o 1º acesso demora ~1 min)
+# e o banco gratuito expira após 30 dias. Para uso real, troque os planos por "starter".
+services:
+  - type: web
+    name: agenda-salas
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: virginia
+    healthCheckPath: /api/health
+    envVars:
+      - key: AGENDA_ENV
+        value: production
+      - key: PORT
+        value: "8000"          # o entrypoint da imagem escuta na 8000
+      - key: WEB_CONCURRENCY
+        value: "1"             # sem Redis: 1 processo
+      - key: AGENDA_DATABASE_URL
+        fromDatabase:
+          name: agenda-db
+          property: connectionString
+      - key: AGENDA_JWT_SECRET
+        generateValue: true
+      - key: AGENDA_BOOTSTRAP_ADMIN_USERNAME
+        value: admin
+      - key: AGENDA_BOOTSTRAP_ADMIN_PASSWORD
+        generateValue: true    # veja o valor em Environment, no painel do Render
+      - key: AGENDA_BOOTSTRAP_ADMIN_NAME
+        value: Administrador
+      - key: AGENDA_TICKET_URL_TEMPLATE
+        value: ""
+
+databases:
+  - name: agenda-db
+    plan: free
+    region: virginia
+    databaseName: agenda
+    user: agenda

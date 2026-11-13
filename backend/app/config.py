@@ -67,6 +67,17 @@ class Settings(BaseSettings):
     # GET /api/health: prazo do "SELECT 1" (estourou = banco indisponível, HTTP 503)
     health_db_timeout_seconds: float = 3.0
 
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def _normalize_database_url(cls, v):
+        # Provedores (Render, Heroku...) entregam "postgres://" ou "postgresql://": o SQLAlchemy
+        # assíncrono precisa do driver asyncpg explícito.
+        if isinstance(v, str):
+            for prefix in ("postgres://", "postgresql://"):
+                if v.startswith(prefix):
+                    return "postgresql+asyncpg://" + v[len(prefix):]
+        return v
+
     @field_validator("redis_url", "ticket_url_template", "frontend_dist", mode="before")
     @classmethod
     def _empty_to_none(cls, v):
