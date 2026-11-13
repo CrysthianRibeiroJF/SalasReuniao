@@ -58,6 +58,7 @@ set -- uvicorn app.main:app \
     --port 8000 \
     --workers "$workers" \
     --proxy-headers \
+    --ws-per-message-deflate false \
     --forwarded-allow-ips="${FORWARDED_ALLOW_IPS:-*}"
 
 if ! is_true "${UVICORN_ACCESS_LOG:-0}"; then
