@@ -128,9 +128,11 @@ class SeedSummary:
     week_start: date | None = None
 
 
-async def seed_demo(session: AsyncSession, *, today: date | None = None) -> SeedSummary:
+async def seed_demo(
+    session: AsyncSession, *, today: date | None = None, include_admin: bool = True
+) -> SeedSummary:
     summary = SeedSummary()
-    users = await _ensure_users(session, summary)
+    users = await _ensure_users(session, summary, include_admin=include_admin)
     rooms = await _ensure_rooms(session, summary)
 
     monday = demo_week_monday(today or today_local())
@@ -171,9 +173,13 @@ def demo_week_monday(today: date) -> date:
     return monday
 
 
-async def _ensure_users(session: AsyncSession, summary: SeedSummary) -> dict[str, User]:
+async def _ensure_users(
+    session: AsyncSession, summary: SeedSummary, *, include_admin: bool = True
+) -> dict[str, User]:
     result: dict[str, User] = {}
     for username, full_name, password, role in DEMO_USERS:
+        if role is UserRole.ADMIN and not include_admin:
+            continue
         user = await users_service.get_by_username(session, username)
         if user is None:
             user = await users_service.create_user(

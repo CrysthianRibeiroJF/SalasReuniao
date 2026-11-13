@@ -28,6 +28,8 @@ services:
         generateValue: true    # veja o valor em Environment, no painel do Render
       - key: AGENDA_BOOTSTRAP_ADMIN_NAME
         value: Administrador
+      - key: AGENDA_DEMO_SEED
+        value: "true"          # salas, recepcao1/recepcao2 (senha recepcao123) e reservas de exemplo
       - key: AGENDA_TICKET_URL_TEMPLATE
         value: ""
 

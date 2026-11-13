@@ -178,7 +178,22 @@ def cmd_init_db(args: argparse.Namespace) -> int:
         _os_error(exc)
         return 1
     print("Banco de dados atualizado.")
-    return _run(_bootstrap_admin)
+    code = _run(_bootstrap_admin)
+    if code == 0 and settings.demo_seed:
+        code = _run(_seed_demo_server)
+    return code
+
+
+async def _seed_demo_server(session: AsyncSession) -> int:
+    from app.seed import seed_demo
+
+    summary = await seed_demo(session, include_admin=False)
+    print(
+        "AGENDA_DEMO_SEED ativo: "
+        f"{len(summary.rooms_created)} sala(s), {len(summary.users_created)} usuário(s) e "
+        f"{summary.bookings_created} reserva(s) de demonstração criados."
+    )
+    return 0
 
 
 async def _bootstrap_admin(session: AsyncSession) -> int:

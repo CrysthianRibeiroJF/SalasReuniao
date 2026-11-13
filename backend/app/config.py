@@ -58,6 +58,10 @@ class Settings(BaseSettings):
     # Pasta com o build do frontend (frontend/dist). Se definida, o backend serve a SPA em "/".
     frontend_dist: str | None = None
 
+    # Demonstração em servidor de testes: o init-db cria salas, recepcionistas (recepcao1/recepcao2,
+    # senha recepcao123) e reservas de exemplo. NÃO cria o admin de demonstração. Desligue em uso real.
+    demo_seed: bool = False
+
     # Criação automática do primeiro administrador (usado pelo comando `init-db`)
     bootstrap_admin_username: str | None = None
     bootstrap_admin_password: str | None = None
