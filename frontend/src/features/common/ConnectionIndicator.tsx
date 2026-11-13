@@ -41,9 +41,18 @@ const COPY: Record<ConnectionStatus, { label: string; short: string; hint: strin
   },
 }
 
+const POLLING_COPY = {
+  label: 'Atualização automática',
+  short: 'Atualizando',
+  hint: 'O tempo real está bloqueado nesta rede: a grade é atualizada a cada poucos segundos e o aviso "Reservando" não aparece. Reservas duplicadas continuam impedidas.',
+  dot: 'bg-warning',
+  text: 'text-warning',
+}
+
 export function ConnectionIndicator() {
   const status = useRealtime((s) => s.status)
-  const copy = COPY[status]
+  const polling = useRealtime((s) => s.polling)
+  const copy = polling && status !== 'open' ? POLLING_COPY : COPY[status]
   return (
     <Tooltip content={copy.hint}>
       <span
